@@ -8,12 +8,17 @@ import pandas as pd
 import datetime as dt
 from datetime import datetime, timedelta
 
+from numpy.matlib import empty
+
 # Ticker symbols for SPDR ETF and CNDX ETF
 
 spdr_ticker = ['SPY','S&P 500 ETF']
 cndx_l = ['CNDX.L', 'NASDAQ ETF']
-cndx_l = ['NVDA', 'Nvidia']
-cndx_l = ['IWF', 'iShare Growth Russel']
+#cndx_l = ['NVDA', 'Nvidia']
+#cndx_l = ['IWF', 'iShare Growth Russel']
+semicon_Vaneck = ['VVSM.DE', 'Semicon Vaneck']
+Energy_MSCI =['XDW0.DE', 'MSCI Energy']
+Energy_EU =['ESIE.De', 'MSCI europe energy']
 
 #cndx_as = ['VWO' ,'Vanguard emerging ETF']
 #cndx_as = ['FNGU' ,'Microsectors FANG 3x leverage']  # Treasure
@@ -24,7 +29,7 @@ cndx_l = ['IWF', 'iShare Growth Russel']
 #cndx_as = ['IVZ','INVESCO Ltd '] # highest % divident
 #cndx_as = ['BLKB','Blackbaud Inc ']
 # cndx_as = ['BX','BlackStone Inc '] #Treasure
-cndx_as = ['BRK-B','Berkshire Hatheway']  #Treasure
+#cndx_as = ['BRK-B','Berkshire Hatheway']  #Treasure
 #cndx_as = ['APO','Apollo investement']
 # cndx_as = ['VGT','Vanguard Growth ETF']
 # cndx_as = ['VTI','Vanguard Stock Market index']
@@ -33,13 +38,13 @@ cndx_as = ['BRK-B','Berkshire Hatheway']  #Treasure
 # cndx_as = ['VV','Vanguard large cap et']
 # cndx_as = ['SMH','Vaneck semiconductor']
 #cndx_l = ['eth-eur','Etherium']
-cndx_as = ['BTC-USD','Bitcoin']
+#cndx_as = ['BTC-USD','Bitcoin']
 # Fetch historical data for SPDR ETF until September 2021
 
 #global spdr_data, cndx_l_data, cndx_as_data
-spdr_data = yf.download(spdr_ticker[0], start ='2016-01-01')
-cndx_l_data = yf.download(cndx_l[0], start ='2016-01-01')
-cndx_as_data = yf.download(cndx_as[0], start = '2016-01-01')
+spdr_data = yf.download(semicon_Vaneck[0], start ='2016-01-01')
+cndx_l_data = yf.download(Energy_MSCI[0], start ='2016-01-01')
+cndx_as_data = yf.download(Energy_EU[0], start = '2016-01-01')
 
 
 
@@ -49,27 +54,38 @@ fig, ax = plt.subplots(1,2,figsize=(10, 6))
 #spdr_data.index= pd.to_datetime(spdr_data.index,unit='D').date()
 #cndx_l_data.index= pd.to_datetime(cndx_l_data.index,unit='D').date
 #cndx_as_data.index = pd.to_datetime(cndx_as_data.index,unit='D').date
+normalized_on = '2026-07-01'
+#normalized_on = False
+if normalized_on:
+# Normalized logarithimic curves on 1st july 2026 values
+    ax[1].plot(spdr_data.index, np.log(spdr_data['Close']/spdr_data.loc[normalized_on,'Close'].values[0]), label=semicon_Vaneck[1], color='blue')
+    ax[1].plot(cndx_l_data.index, np.log(cndx_l_data['Close']/cndx_l_data.loc[normalized_on,'Close'].values[0]), label=Energy_MSCI[1], color='green')
+    ax[1].plot(cndx_as_data.index, np.log(cndx_as_data['Close']/cndx_as_data.loc[normalized_on,'Close'].values[0]), label=Energy_EU[1], color='black')
+else:
+    ax[1].plot(spdr_data.index, np.log(spdr_data['Close']),label=semicon_Vaneck[1], color='blue')
+    ax[1].plot(cndx_l_data.index, np.log(cndx_l_data['Close']),label=Energy_MSCI[1], color='green')
+    ax[1].plot(cndx_as_data.index, np.log(cndx_as_data['Close']),label=Energy_EU[1], color='black')
 
-ax[1].plot(spdr_data.index, np.log(spdr_data['Close']), label=spdr_ticker[1], color='blue')
-ax[1].plot(cndx_l_data.index, np.log(cndx_l_data['Close']), label=cndx_l[1], color='green')
-ax[1].plot(cndx_as_data.index, np.log(cndx_as_data['Close']), label=cndx_as[1], color='black')
 
 
-ax[0].plot(spdr_data.index, spdr_data['Close'], label=spdr_ticker[1], color='blue')
-ax[0].plot(cndx_l_data.index, cndx_l_data['Close'], label=cndx_l[1], color='green')
-ax[0].plot(cndx_as_data.index, cndx_as_data['Close'], label=cndx_as[1], color='black')
+
+print(cndx_as_data.loc['2026-09-01','Close'].values[0])
+
+ax[0].plot(spdr_data.index, spdr_data['Close'], label=semicon_Vaneck[1], color='blue')
+ax[0].plot(cndx_l_data.index, cndx_l_data['Close'], label=Energy_MSCI[1], color='green')
+ax[0].plot(cndx_as_data.index, cndx_as_data['Close'], label=Energy_EU[1], color='black')
 
 
-def onclick(event):
-    date = pd.to_datetime(event.xdata,unit='d').date()
-    print(date)
-    spdr_data = samp(date, datetime.now().date())
-    ax[1].cla()
-    ax[1].plot(spdr_data.index, np.log(spdr_data['Close']), label=spdr_ticker[1], color='blue')
-def samp(start_date, end_date):
-    df = spdr_data
-    return df.loc[start_date.__str__(): end_date.__str__()]
-
+# def onclick(event):
+#     date = pd.to_datetime(event.xdata,unit='d').date()
+#     print(date)
+#     spdr_data = samp(date, datetime.now().date())
+#     ax[1].cla()
+#     ax[1].plot(spdr_data.index, np.log(spdr_data['Close']), label=spdr_ticker[1], color='blue')
+# def samp(start_date, end_date):
+#     df = spdr_data
+#     return df.loc[start_date.__str__(): end_date.__str__()]
+#
 
 
 ax[0].set_xlabel('Date')
@@ -86,6 +102,6 @@ ax[0].set_facecolor('#ffffe4')
 ax[1].set_facecolor('#ffffe4')
 ax[0].grid()
 
-fig.canvas.mpl_connect('button_press_event',onclick)
+#fig.canvas.mpl_connect('button_press_event',onclick)
 
 plt.show()
